@@ -2,7 +2,10 @@ import { Fragment, useMemo } from "react";
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,10 +16,11 @@ import { LANES, MODELS, type LaneId } from "@/lib/pricing";
 import {
   computeNodeCost,
   laneCost,
-  mauExpectedCost,
   totalRunCost,
   useSim,
 } from "@/lib/simulator-store";
+import { runMonteCarlo } from "@/lib/monte-carlo";
+import { SaveToLedgerDialog } from "./SaveToLedgerDialog";
 
 function fmt(n: number) {
   if (n >= 1000) return `$${(n / 1000).toFixed(2)}k`;
@@ -38,15 +42,27 @@ export function Dashboard() {
   const triggerPoisoning = useSim((s) => s.triggerPoisoning);
 
   const perRun = totalRunCost(nodes, edges);
-  const monthly = mauExpectedCost(perRun, mau);
+
+  const mc = useMemo(() => runMonteCarlo(perRun, mau), [perRun, mau]);
+  const monthly = mc.mean;
 
   const chartData = useMemo(() => {
     const pts = [1, 100, 1000, 5000, 10000, 25000, 50000, 100000];
-    return pts.map((u) => ({ users: u, cost: mauExpectedCost(perRun, u) }));
+    return pts.map((u) => ({ users: u, cost: runMonteCarlo(perRun, u).mean }));
   }, [perRun]);
+
+  const histData = useMemo(
+    () =>
+      mc.bins.map((b) => ({
+        mid: (b.x0 + b.x1) / 2,
+        count: b.count,
+      })),
+    [mc],
+  );
 
   const selectedNode = nodes.find((n) => n.id === selectedId) ?? null;
   const selectedCost = selectedNode ? computeNodeCost(selectedNode, nodes, edges) : null;
+
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
