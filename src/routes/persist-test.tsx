@@ -11,7 +11,7 @@ import {
 } from "@/lib/storage/usecases";
 import type { UseCase, AppSettings } from "@/lib/storage/types";
 
-export const Route = createFileRoute("/__persist-test")({
+export const Route = createFileRoute("/persist-test")({
   component: PersistTest,
 });
 
