@@ -127,9 +127,64 @@ export function Dashboard() {
           className="mt-2 w-full accent-indigo-500"
         />
         <div className="mt-1 text-[10px] text-zinc-500">
-          70% normal · 20% heavy (2×) · 10% whales (5×) — weighted 1.8× multiplier
+          1,000 simulated draws · 70% standard · 20% heavy (2×) · 10% whale (5×)
         </div>
       </div>
+
+      {/* Distribution histogram */}
+      <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2">
+        <div className="flex items-baseline justify-between px-2 pt-1">
+          <div className="text-xs text-zinc-400">
+            Monthly cost distribution @ {mau.toLocaleString()} MAU
+          </div>
+          <div className="font-mono text-[10px] text-zinc-500">
+            n=1,000
+          </div>
+        </div>
+        <div className="h-36">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={histData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+              <CartesianGrid stroke="#27272a" strokeDasharray="3 3" />
+              <XAxis
+                dataKey="mid"
+                stroke="#71717a"
+                tick={{ fontSize: 9 }}
+                tickFormatter={(v) => fmt(v)}
+              />
+              <YAxis stroke="#71717a" tick={{ fontSize: 9 }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ background: "#18181b", border: "1px solid #3f3f46", fontSize: 12 }}
+                formatter={(v: number) => `${v} draws`}
+                labelFormatter={(l: number) => fmt(l)}
+              />
+              <ReferenceLine
+                x={mc.p5}
+                stroke="#a1a1aa"
+                strokeDasharray="3 3"
+                label={{ value: "p5", position: "top", fill: "#a1a1aa", fontSize: 9 }}
+              />
+              <ReferenceLine
+                x={mc.mean}
+                stroke="#818cf8"
+                label={{ value: "mean", position: "top", fill: "#818cf8", fontSize: 9 }}
+              />
+              <ReferenceLine
+                x={mc.p95}
+                stroke="#f87171"
+                strokeDasharray="3 3"
+                label={{ value: "p95", position: "top", fill: "#f87171", fontSize: 9 }}
+              />
+              <Bar dataKey="count" fill="#6366f1" fillOpacity={0.7} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex items-center justify-between px-2 pb-1 pt-1 text-[10px] font-mono text-zinc-500">
+          <span>p5 {fmt(mc.p5)}</span>
+          <span className="text-indigo-300">mean {fmt(mc.mean)}</span>
+          <span>p95 {fmt(mc.p95)}</span>
+        </div>
+      </div>
+
 
       {/* Chart */}
       <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2">
