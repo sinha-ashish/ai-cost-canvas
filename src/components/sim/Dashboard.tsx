@@ -66,6 +66,14 @@ export function Dashboard() {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
+      {/* Top actions */}
+      <div className="flex items-center justify-between">
+        <div className="text-[10px] uppercase tracking-widest text-zinc-500">
+          Cost analytics
+        </div>
+        <SaveToLedgerDialog perRun={perRun} monteCarloMean={mc.mean} />
+      </div>
+
       {/* Top KPIs */}
       <div className="grid grid-cols-2 gap-3">
         <Kpi label="Cost / Run" value={fmt(perRun)} icon={<Zap className="h-3.5 w-3.5" />} />
@@ -76,6 +84,7 @@ export function Dashboard() {
           accent
         />
       </div>
+
 
       {/* Poisoning */}
       <button
