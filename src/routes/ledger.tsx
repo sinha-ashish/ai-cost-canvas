@@ -3,6 +3,7 @@ import { BookOpen } from "lucide-react";
 import { useLedgerData } from "@/components/ledger/useLedgerData";
 import { KpiRow } from "@/components/ledger/KpiRow";
 import { CompositionStrip } from "@/components/ledger/CompositionStrip";
+import { LedgerTable } from "@/components/ledger/LedgerTable";
 
 export const Route = createFileRoute("/ledger")({
   head: () => ({
