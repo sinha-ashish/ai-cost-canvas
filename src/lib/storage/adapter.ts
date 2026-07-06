@@ -53,14 +53,14 @@ class IndexedDBAdapter implements StorageAdapter {
   }
   async set<T>(store: string, id: string, value: T): Promise<void> {
     const db = await getDB();
-    // Stores with keyPath ignore the explicit key; stores without one use it.
-    const s = db.transaction(store, "readwrite").objectStore(store);
+    const tx = db.transaction(store, "readwrite");
+    const s = tx.objectStore(store);
     if (s.keyPath) {
       await s.put(value as never);
     } else {
       await s.put(value as never, id);
     }
-    await db.transaction(store, "readwrite").done;
+    await tx.done;
   }
   async getAll<T>(store: string): Promise<T[]> {
     const db = await getDB();
