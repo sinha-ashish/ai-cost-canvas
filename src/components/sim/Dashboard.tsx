@@ -2,7 +2,10 @@ import { Fragment, useMemo } from "react";
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,10 +16,11 @@ import { LANES, MODELS, type LaneId } from "@/lib/pricing";
 import {
   computeNodeCost,
   laneCost,
-  mauExpectedCost,
   totalRunCost,
   useSim,
 } from "@/lib/simulator-store";
+import { runMonteCarlo } from "@/lib/monte-carlo";
+import { SaveToLedgerDialog } from "./SaveToLedgerDialog";
 
 function fmt(n: number) {
   if (n >= 1000) return `$${(n / 1000).toFixed(2)}k`;
@@ -38,18 +42,38 @@ export function Dashboard() {
   const triggerPoisoning = useSim((s) => s.triggerPoisoning);
 
   const perRun = totalRunCost(nodes, edges);
-  const monthly = mauExpectedCost(perRun, mau);
+
+  const mc = useMemo(() => runMonteCarlo(perRun, mau), [perRun, mau]);
+  const monthly = mc.mean;
 
   const chartData = useMemo(() => {
     const pts = [1, 100, 1000, 5000, 10000, 25000, 50000, 100000];
-    return pts.map((u) => ({ users: u, cost: mauExpectedCost(perRun, u) }));
+    return pts.map((u) => ({ users: u, cost: runMonteCarlo(perRun, u).mean }));
   }, [perRun]);
+
+  const histData = useMemo(
+    () =>
+      mc.bins.map((b) => ({
+        mid: (b.x0 + b.x1) / 2,
+        count: b.count,
+      })),
+    [mc],
+  );
 
   const selectedNode = nodes.find((n) => n.id === selectedId) ?? null;
   const selectedCost = selectedNode ? computeNodeCost(selectedNode, nodes, edges) : null;
 
+
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
+      {/* Top actions */}
+      <div className="flex items-center justify-between">
+        <div className="text-[10px] uppercase tracking-widest text-zinc-500">
+          Cost analytics
+        </div>
+        <SaveToLedgerDialog perRun={perRun} monteCarloMean={mc.mean} />
+      </div>
+
       {/* Top KPIs */}
       <div className="grid grid-cols-2 gap-3">
         <Kpi label="Cost / Run" value={fmt(perRun)} icon={<Zap className="h-3.5 w-3.5" />} />
@@ -60,6 +84,7 @@ export function Dashboard() {
           accent
         />
       </div>
+
 
       {/* Poisoning */}
       <button
@@ -102,9 +127,64 @@ export function Dashboard() {
           className="mt-2 w-full accent-indigo-500"
         />
         <div className="mt-1 text-[10px] text-zinc-500">
-          70% normal · 20% heavy (2×) · 10% whales (5×) — weighted 1.8× multiplier
+          1,000 simulated draws · 70% standard · 20% heavy (2×) · 10% whale (5×)
         </div>
       </div>
+
+      {/* Distribution histogram */}
+      <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2">
+        <div className="flex items-baseline justify-between px-2 pt-1">
+          <div className="text-xs text-zinc-400">
+            Monthly cost distribution @ {mau.toLocaleString()} MAU
+          </div>
+          <div className="font-mono text-[10px] text-zinc-500">
+            n=1,000
+          </div>
+        </div>
+        <div className="h-36">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={histData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+              <CartesianGrid stroke="#27272a" strokeDasharray="3 3" />
+              <XAxis
+                dataKey="mid"
+                stroke="#71717a"
+                tick={{ fontSize: 9 }}
+                tickFormatter={(v) => fmt(v)}
+              />
+              <YAxis stroke="#71717a" tick={{ fontSize: 9 }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ background: "#18181b", border: "1px solid #3f3f46", fontSize: 12 }}
+                formatter={(v: number) => `${v} draws`}
+                labelFormatter={(l: number) => fmt(l)}
+              />
+              <ReferenceLine
+                x={mc.p5}
+                stroke="#a1a1aa"
+                strokeDasharray="3 3"
+                label={{ value: "p5", position: "top", fill: "#a1a1aa", fontSize: 9 }}
+              />
+              <ReferenceLine
+                x={mc.mean}
+                stroke="#818cf8"
+                label={{ value: "mean", position: "top", fill: "#818cf8", fontSize: 9 }}
+              />
+              <ReferenceLine
+                x={mc.p95}
+                stroke="#f87171"
+                strokeDasharray="3 3"
+                label={{ value: "p95", position: "top", fill: "#f87171", fontSize: 9 }}
+              />
+              <Bar dataKey="count" fill="#6366f1" fillOpacity={0.7} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex items-center justify-between px-2 pb-1 pt-1 text-[10px] font-mono text-zinc-500">
+          <span>p5 {fmt(mc.p5)}</span>
+          <span className="text-indigo-300">mean {fmt(mc.mean)}</span>
+          <span>p95 {fmt(mc.p95)}</span>
+        </div>
+      </div>
+
 
       {/* Chart */}
       <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2">
