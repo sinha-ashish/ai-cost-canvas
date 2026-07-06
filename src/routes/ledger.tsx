@@ -3,6 +3,7 @@ import { BookOpen } from "lucide-react";
 import { useLedgerData } from "@/components/ledger/useLedgerData";
 import { KpiRow } from "@/components/ledger/KpiRow";
 import { CompositionStrip } from "@/components/ledger/CompositionStrip";
+import { LedgerTable } from "@/components/ledger/LedgerTable";
 
 export const Route = createFileRoute("/ledger")({
   head: () => ({
@@ -52,12 +53,17 @@ function LedgerPage() {
 
         {ledger.useCases.length === 0 && !ledger.loading && (
           <div className="mb-4 rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-4 text-center text-xs text-zinc-500">
-            No use cases yet. Save a configuration from the Sandbox, or add a use case manually — coming below.
+            No use cases yet. Save a configuration from the Sandbox, or add one manually below.
           </div>
         )}
 
-        <section className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/20 p-8 text-center text-xs text-zinc-500">
-          Ledger table — next pass
+        <section>
+          <LedgerTable
+            computed={ledger.computed}
+            target={ledger.settings.roaiTarget}
+            onUpdate={ledger.updateUseCase}
+            onCreate={ledger.updateUseCase}
+          />
         </section>
       </div>
     </div>
