@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PersistTestRouteImport } from './routes/persist-test'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -24,6 +25,11 @@ const PersistTestRoute = PersistTestRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LedgerRoute = LedgerRouteImport.update({
+  id: '/ledger',
+  path: '/ledger',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -52,6 +58,7 @@ const Char91DotmcpChar93InvokeToolToolRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ledger': typeof LedgerRoute
   '/mcp': typeof McpRoute
   '/persist-test': typeof PersistTestRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -60,6 +67,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ledger': typeof LedgerRoute
   '/mcp': typeof McpRoute
   '/persist-test': typeof PersistTestRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -69,6 +77,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ledger': typeof LedgerRoute
   '/mcp': typeof McpRoute
   '/persist-test': typeof PersistTestRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ledger'
     | '/mcp'
     | '/persist-test'
     | '/.mcp/list-tools'
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ledger'
     | '/mcp'
     | '/persist-test'
     | '/.mcp/list-tools'
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/ledger'
     | '/mcp'
     | '/persist-test'
     | '/.mcp/list-tools'
@@ -104,6 +116,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LedgerRoute: typeof LedgerRoute
   McpRoute: typeof McpRoute
   PersistTestRoute: typeof PersistTestRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -125,6 +138,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ledger': {
+      id: '/ledger'
+      path: '/ledger'
+      fullPath: '/ledger'
+      preLoaderRoute: typeof LedgerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -160,6 +180,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LedgerRoute: LedgerRoute,
   McpRoute: McpRoute,
   PersistTestRoute: PersistTestRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
